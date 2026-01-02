@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Trash2, Layers, AlertTriangle, FileText, Lock, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 import { db, generateId } from '../../db.js';
 
 const SoilTab = ({ pointId, projectId }) => {
-  const activePointId = pointId;
+  const activePointId = pointId; // Fallback para preview
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -95,7 +96,7 @@ const SoilTab = ({ pointId, projectId }) => {
 
     if(!confirm("¿Eliminar este estrato manual?")) return;
     try {
-      await db.soil_profiles.delete(item.id);
+      await db.soil_profiles.delete(item.soil_id);
       loadData();
     } catch (e) { console.error(e); }
   };
@@ -110,7 +111,9 @@ const SoilTab = ({ pointId, projectId }) => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    // FIX DE DISEÑO: Quitamos 'h-full', agregamos 'gap-4 pb-10' para scroll natural
+    <div className="flex flex-col gap-4 pb-10">
+      
       {/* Formulario */}
       <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-600">
          <h3 className="font-bold text-gray-700 flex items-center gap-2 mb-3">
@@ -139,9 +142,12 @@ const SoilTab = ({ pointId, projectId }) => {
       </div>
 
       {/* Lista */}
-      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col border border-gray-200">
+      {/* Eliminado flex-1 y overflow-hidden del padre para permitir crecimiento */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
          <div className="bg-green-50 p-2 border-b border-green-100"><h4 className="font-bold text-xs text-green-800">Estratos Registrados ({list.length})</h4></div>
-         <div className="overflow-auto flex-1">
+         
+         {/* Solo overflow-x-auto para scroll horizontal si es necesario */}
+         <div className="overflow-x-auto">
              <table className="w-full text-xs text-left">
                 <thead className="bg-gray-50 text-gray-500 sticky top-0">
                     <tr>

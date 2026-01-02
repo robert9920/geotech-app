@@ -204,7 +204,9 @@ const DiscontinuityTab = ({ pointId, projectId }) => {
   };
 
   return (
-    <div className="flex flex-col h-full space-y-4">
+    // FIX DE DISEÑO: Quitamos 'h-full', agregamos 'gap-4 pb-10' para scroll natural
+    <div className="flex flex-col gap-4 pb-10">
+      
       {/* FORMULARIO */}
       <div className="bg-white p-4 rounded-lg shadow border-l-4 border-purple-600">
         <h3 className="font-bold text-gray-700 flex items-center gap-2 mb-4">
@@ -276,10 +278,12 @@ const DiscontinuityTab = ({ pointId, projectId }) => {
         </form>
       </div>
 
-      {/* LISTA */}
-      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col">
+      {/* LISTA: Eliminado flex-1 y overflow-hidden del padre para permitir crecimiento */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
          <div className="bg-gray-100 p-2 border-b"><h4 className="font-bold text-xs text-gray-600">Registros ({list.length})</h4></div>
-         <div className="overflow-auto flex-1">
+         
+         {/* Solo overflow-x-auto para scroll horizontal si es necesario */}
+         <div className="overflow-x-auto">
              <table className="w-full text-xs text-left">
                 <thead className="text-gray-500 bg-gray-50 sticky top-0">
                     <tr>

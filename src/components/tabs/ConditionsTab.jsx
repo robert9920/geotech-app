@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Trash2, Layers, AlertTriangle } from 'lucide-react';
-import { db, generateId } from '../../db.js'; 
+import { db, generateId } from '../../db.js';
 
 const ConditionsTab = ({ pointId }) => {
-  // Fallback para testing en preview si no se pasa prop
-  const activePointId = pointId || 'TEST-POINT-1';
+  const activePointId = pointId;
 
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -132,13 +131,12 @@ const ConditionsTab = ({ pointId }) => {
   };
 
   return (
-    <div className="flex flex-col h-full space-y-4">
+    // FIX DE DISEÑO: Quitamos 'h-full', agregamos 'gap-4 pb-10' para scroll natural
+    <div className="flex flex-col gap-4 pb-10">
       
       {/* --- FORMULARIO --- */}
-      {/* Se cambió border-blue-600 por border-teal-600 */}
       <div className="bg-white p-4 rounded-lg shadow border-l-4 border-teal-600">
         <h3 className="font-bold text-gray-700 flex items-center gap-2 mb-4">
-            {/* Se cambió text-blue-600 por text-teal-600 */}
             <Layers size={18} className="text-teal-600"/> Nueva Condición
         </h3>
 
@@ -191,7 +189,6 @@ const ConditionsTab = ({ pointId }) => {
             <button 
                 type="submit" 
                 disabled={loading}
-                // Se cambió bg-blue-600/hover:bg-blue-700 por bg-teal-600/hover:bg-teal-700
                 className="w-full bg-teal-600 text-white py-3 rounded font-bold hover:bg-teal-700 shadow-md transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
             >
                 <Save size={18}/> {loading ? 'Guardando...' : 'Guardar Condición'}
@@ -200,14 +197,16 @@ const ConditionsTab = ({ pointId }) => {
       </div>
 
       {/* --- LISTA --- */}
-      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col">
+      {/* Eliminado flex-1 y overflow-hidden del padre para permitir crecimiento */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
          <div className="bg-gray-100 p-2 border-b flex justify-between items-center">
             <h4 className="font-bold text-xs text-gray-600">Registros ({list.length})</h4>
          </div>
          
-         <div className="overflow-auto flex-1">
+         {/* Solo overflow-x-auto para scroll horizontal si es necesario */}
+         <div className="overflow-x-auto">
              {list.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400 p-10">
+                <div className="flex flex-col items-center justify-center p-10 text-gray-400">
                     <AlertTriangle size={32} className="mb-2 opacity-30"/>
                     <span className="text-xs">No hay condiciones registradas</span>
                 </div>
@@ -224,7 +223,6 @@ const ConditionsTab = ({ pointId }) => {
                     </thead>
                     <tbody className="divide-y">
                         {list.map(item => (
-                            // Se cambió hover:bg-blue-50 por hover:bg-teal-50
                             <tr key={item.core_condition_id} className="hover:bg-teal-50">
                                 <td className="p-3 font-bold text-gray-700">{item.depth.toFixed(2)}</td>
                                 <td className="p-3 font-bold text-gray-700">{item.bottom.toFixed(2)}</td>
@@ -241,7 +239,7 @@ const ConditionsTab = ({ pointId }) => {
                                 </td>
                                 <td className="p-3 text-right">
                                     <button 
-                                        onClick={() => handleDelete(item.id)} 
+                                        onClick={() => handleDelete(item.core_condition_id)} 
                                         className="text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors"
                                         title="Eliminar"
                                     >

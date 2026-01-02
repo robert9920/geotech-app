@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Trash2, Activity, Ruler, Hash, PenTool, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 import { db, generateId } from '../../db.js';
 
-
 const PiezometerTab = ({ pointId, projectId }) => {
-  const activePointId = pointId;
+  const activePointId = pointId; // Fallback para preview
   const [currentProjectId, setCurrentProjectId] = useState(projectId);
   const navigate = useNavigate();
   const [list, setList] = useState([]);
@@ -132,7 +132,8 @@ const PiezometerTab = ({ pointId, projectId }) => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4 pb-10">
+    // FIX DE DISEÑO: Quitamos 'h-full', usamos 'gap-4 pb-10' para permitir scroll natural de la página
+    <div className="flex flex-col gap-4 pb-10">
       
       {/* --- FORMULARIO --- */}
       <div className="bg-white p-4 rounded-lg shadow border-l-4 border-indigo-600">
@@ -205,9 +206,12 @@ const PiezometerTab = ({ pointId, projectId }) => {
       </div>
 
       {/* --- LISTA --- */}
-      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col border border-gray-200">
+      {/* Eliminado 'flex-1' y 'overflow-hidden' del padre para evitar doble scroll */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
          <div className="bg-indigo-50 p-2 border-b border-indigo-100"><h4 className="font-bold text-xs text-indigo-800">Registros ({list.length})</h4></div>
-         <div className="overflow-auto flex-1">
+         
+         {/* 'overflow-x-auto' solo para desplazamiento horizontal de la tabla si es necesario */}
+         <div className="overflow-x-auto">
              <table className="w-full text-xs text-left">
                 <thead className="bg-gray-50 text-gray-500 sticky top-0">
                     <tr>
@@ -249,7 +253,7 @@ const PiezometerTab = ({ pointId, projectId }) => {
                                     <button onClick={() => handleEdit(item)} className="text-blue-500 hover:bg-blue-50 p-1 rounded transition-colors" title="Editar">
                                         <Pencil size={16}/>
                                     </button>
-                                    <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title="Eliminar">
+                                    <button onClick={() => handleDelete(item.piezometer_id)} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title="Eliminar">
                                         <Trash2 size={16}/>
                                     </button>
                                 </div>
