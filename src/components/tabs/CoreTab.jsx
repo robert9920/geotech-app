@@ -30,9 +30,10 @@ const CoreTab = ({ pointId, projectId }) => {
     { label: 'Broken Core', value: 20 }
   ];
 
-  // Función auxiliar para extraer el valor numérico de las etiquetas
+  // Función auxiliar para extraer el valor numérico de las etiquetas (ej: "R3 - Media" -> 3)
   const extractValue = (str) => {
       if (!str) return null;
+      // Busca R o W seguido de un número al inicio
       const match = str.match(/^[RW](\d+)/);
       return match ? parseInt(match[1], 10) : null;
   };
@@ -48,12 +49,16 @@ const CoreTab = ({ pointId, projectId }) => {
     const items = await db.cores.where('point_id').equals(pointId).toArray();
     const sortedItems = items.sort((a, b) => a.depth - b.depth);
 
+    // --- NUEVO: ENRIQUECER CORES CON DATOS DE STRENGTH/WEATHERING ---
     const enrichedCores = await Promise.all(sortedItems.map(async (core) => {
+        // Buscar datos relacionados
         const sw = await db.strength_weathering.where('core_id').equals(core.core_id).first();
+        
         let strIdx = '-';
         let weaIdx = '-';
 
         if (sw) {
+            // Calcular índices en caliente
             const s1 = extractValue(sw.strength_v1);
             const s2 = extractValue(sw.strength_v2);
             if (s1 !== null && s2 !== null) strIdx = (s1 + s2) / 2;
@@ -83,9 +88,9 @@ const CoreTab = ({ pointId, projectId }) => {
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointId]);
 
+  // Cálculos visuales
   const runLength = (parseFloat(formData.bottom) - parseFloat(formData.depth)) || 0;
   
   const calculatePercentage = (length) => {
@@ -210,11 +215,11 @@ const CoreTab = ({ pointId, projectId }) => {
   };
 
   return (
-    // FIX DE DISEÑO: 'overflow-hidden' en el padre evita que toda la página scrollee.
-    <div className="flex flex-col h-full overflow-hidden gap-3">
+    // CAMBIO CLAVE: Quitamos 'h-full' y agregamos 'pb-10' para dar espacio al final
+    <div className="flex flex-col gap-6 pb-10">
       
-      {/* FORMULARIO: 'flex-shrink-0' asegura que no se colapse, 'overflow-y-auto' permite scroll interno si el teclado lo tapa */}
-      <div className="flex-shrink-0 bg-white p-4 rounded-lg shadow border-l-4 border-blue-600 overflow-y-auto max-h-[60vh]">
+      {/* FORMULARIO DE CREACIÓN */}
+      <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-600">
         <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-gray-700 flex items-center gap-2">
                 <Calculator size={18} className="text-blue-600"/> 
@@ -263,17 +268,17 @@ const CoreTab = ({ pointId, projectId }) => {
         </form>
       </div>
 
-      {/* TABLA HISTORIAL: 'flex-1' + 'min-h-0' es el truco para scroll independiente en flexbox */}
-      <div className="flex-1 bg-white rounded-lg shadow overflow-hidden flex flex-col min-h-0">
-         <div className="bg-gray-100 p-3 border-b flex justify-between items-center flex-shrink-0">
+      {/* TABLA HISTORIAL */}
+      {/* CAMBIO CLAVE: Ya no usamos 'flex-1 overflow-auto'. Dejamos que la tabla ocupe su altura natural. */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+         <div className="bg-gray-100 p-3 border-b flex justify-between items-center">
              <h4 className="font-bold text-gray-600 text-sm">Historial de Corridas</h4>
              <span className="text-xs bg-white px-2 py-1 rounded border text-gray-500">{cores.length} registros</span>
          </div>
-         
-         {/* 'overflow-auto' aquí permite que solo la tabla scrollee */}
-         <div className="overflow-auto flex-1 p-0">
+         {/* 'overflow-x-auto' permite deslizar horizontalmente SOLO si la tabla es muy ancha, pero no afecta al scroll vertical de la página */}
+         <div className="overflow-x-auto">
              <table className="w-full text-xs text-left">
-                <thead className="text-gray-500 uppercase bg-gray-50 sticky top-0 z-10 shadow-sm">
+                <thead className="text-gray-500 uppercase bg-gray-50">
                     <tr>
                         <th className="px-2 py-3 text-center w-10">#</th>
                         <th className="px-2 py-3">Prof (m)</th>
