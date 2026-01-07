@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'GeoTech App',
-        short_name: 'GeoTech',
+        name: 'GeoLog Collector',
+        short_name: 'GeoLog',
         description: 'Registro de datos geotécnicos en campo',
         theme_color: '#ffffff',
         background_color: '#ffffff',
