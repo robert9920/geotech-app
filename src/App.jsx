@@ -14,6 +14,8 @@ import EditDiscontinuity from './components/tabs/EditDiscontinuity.jsx';
 import EditSample  from './components/tabs/EditSample.jsx'; 
 import EditSoil from './components/tabs/EditSoil.jsx';  
 import EditPiezometer from './components/tabs/EditPiezometer.jsx';
+import EditHydraulic from './components/tabs/EditHydraulic.jsx';
+import EditConditions from './components/tabs/EditConditions.jsx';
 
 const App = () => {
   return (
@@ -32,13 +34,18 @@ const App = () => {
         
         <Route path="/edit-discontinuity/:projectId/:pointId/:discontinuityId" element={<EditDiscontinuity />} />
 
+        <Route path="/edit-conditions/:projectId/:pointId/:conditionId" element={<EditConditions />} />
+
         <Route path="/edit-sample/:projectId/:pointId/:sampleId" element={<EditSample />} />
 
         <Route path="/edit-soil/:projectId/:pointId/:soilId" element={<EditSoil />} />
 
+        <Route path="/edit-hydraulic/:projectId/:pointId/:hydraulicId" element={<EditHydraulic />} />
+
         <Route path="/edit-piezometer/:projectId/:pointId/:piezometerId" element={<EditPiezometer />} />
 
         <Route path="/point/:pointId" element={<Dashboard />} />
+
       </Routes>
     </Router>
   );

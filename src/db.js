@@ -12,16 +12,16 @@ db.version(1).stores({
   points: '++id, point_id, project_id, hole_depth, boring_date, soil_drilling_contractor, elevation, plunge, end_soil_depth, start_rock_depth, top_depth_rock, rock_date, rock_drilling_contractor, rock_drilling_rig, depth_log_page, borehole_type, north, east, surveyed, coordinate_system, zone, sync_status',
 
   // TABLAS DE REGISTRO (PESTAÑAS)
-  cores: '++id, core_id, point_id, depth, bottom, run_number, tcr_length, rqd_length, jn, fracture_index, sync_status',
-  discontinuities: '++id, discontinuity_id, point_id, depth, type, dip, shape, aperture, roughness_rating, weathering_rating, jcr, condition_discon, jr_roughness, ja_alteration, jn_set, sync_status',
+  cores: '++id, core_id, point_id, depth, bottom, run_number, tcr_length, rqd_length, jn, sync_status',
+  discontinuities: '++id, discontinuity_id, point_id, depth, type, dip, shape, aperture, roughness_rating, weathering_rating, jcr, condition_discon, jr_roughness, ja_alteration, sync_status',
   core_conditions: '++id, core_condition_id, point_id, depth, bottom, type, sync_status',
   
   // Pestaña Tests (Incluye Samples y Hydraulic)
   samples: '++id, sample_id, point_id, depth, bottom, number, type, v_15, v_30, v_45, sample_recobery, blows_limit_depth, sync_status',
-  hydraulic_cond: '++id, hydraulic_id, point_id, depth, bottom, k, sync_status',
+  hydraulic_cond: '++id, hydraulic_id, point_id, depth, bottom, k, number, check, sync_status',
   
   piezometers: '++id, piezometer_id, point_id, depth, bottom, graphic, description, therm_node_num, lines, color, name, prof_piezo, sync_status',
-  soil_profiles: '++id, soil_id, point_id, depth, bottom, graphic, description, unit_summary, linked_sample_id, sync_status',
+  soil_profiles: '++id, soil_id, point_id, depth, bottom, graphic, description, unit_summary, linked_sample_id, linked_hydraulic_id, sync_status',
 
   // TABLAS DE ACCIÓN RÁPIDA (BOTONES)
   water_observations: '++id, water_id, point_id, depth, water_observation_date, sync_status',
