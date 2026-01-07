@@ -22,12 +22,12 @@ const StrengthWeathering = () => {
   // CAMBIO 2: Se añade W0
   const weatheringOptions = [
     { label: 'W0 - Sana / Sin meteorización', val: 0 }, // Nueva opción
-    { label: 'W1 - Fresca (I)', val: 1 },
-    { label: 'W2 - Ligeramente meteorizada (II)', val: 2 },
-    { label: 'W3 - Moderadamente meteorizada (III)', val: 3 },
-    { label: 'W4 - Altamente meteorizada (IV)', val: 4 },
-    { label: 'W5 - Completamente meteorizada (V)', val: 5 },
-    { label: 'W6 - Suelo residual (VI)', val: 6 }
+    { label: 'W1 - Fresca', val: 1 },
+    { label: 'W2 - Ligeramente meteorizada', val: 2 },
+    { label: 'W3 - Moderadamente meteorizada', val: 3 },
+    { label: 'W4 - Altamente meteorizada', val: 4 },
+    { label: 'W5 - Completamente meteorizada', val: 5 },
+    { label: 'W6 - Suelo residual', val: 6 }
   ];
 
   const [formData, setFormData] = useState({

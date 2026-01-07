@@ -174,7 +174,6 @@ const EditDiscontinuity = () => {
             condition_discon: parseInt(formData.condition_discon),
             jr_roughness: parseFloat(formData.jr_roughness),
             ja_alteration: parseFloat(formData.ja_alteration),
-            jn_set: parseFloat(formData.jn_set),
             sync_status: 0
         });
         
@@ -303,12 +302,6 @@ const EditDiscontinuity = () => {
                         <label className="text-sm font-bold text-purple-700 block mb-1">Ja (Alteration)</label>
                         <select name="ja_alteration" value={formData.ja_alteration} onChange={handleChange} className="w-full p-3 border border-purple-200 bg-purple-50 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
                             {jaOptions.map((o,i)=><option key={i} value={o.val}>{o.label} ({o.val})</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="text-sm font-bold text-purple-700 block mb-1">Jn (Set)</label>
-                        <select name="jn_set" value={formData.jn_set} onChange={handleChange} className="w-full p-3 border border-purple-200 bg-purple-50 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none">
-                            {jnSetOptions.map(o=><option key={o.val} value={o.val}>{o.label} ({o.val})</option>)}
                         </select>
                     </div>
                 </div>
