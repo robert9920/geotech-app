@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom'; // Agregado useLocation
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Droplet, Drill } from 'lucide-react';
 import { db } from '../db.js';
 
@@ -10,13 +10,15 @@ import ConditionsTab from './tabs/ConditionsTab.jsx';
 import TestsTab from './tabs/TestsTab.jsx';
 import SoilTab from './tabs/SoilTab.jsx';
 import PiezometerTab from './tabs/PiezometerTab.jsx';
+import WaterPage from './WaterObs.jsx';
+import MethodsPage from './Methods.jsx';
 
 const Dashboard = () => {
   const { pointId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); // Hook para leer el estado de navegación
+  const location = useLocation();
 
-  // MODIFICADO: Inicializa activeTab leyendo location.state si existe, si no usa 'core'
+  // Inicializa activeTab leyendo location.state si existe, si no usa 'core'
   const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'core');
   
   const [pointData, setPointData] = useState(null);
@@ -72,18 +74,36 @@ const Dashboard = () => {
 
       {/* BARRA DE ACCIONES */}
       <div className="bg-white border-b p-2 flex justify-between items-center shadow-sm px-4">
-         <button className="flex items-center gap-1 text-sm font-bold text-blue-700 bg-blue-50 px-3 py-2 rounded border border-blue-200 active:bg-blue-100 transition-transform active:scale-95">
-            <Droplet size={16} /> Water
+         {/* Botón Water Activo/Inactivo */}
+         <button 
+            onClick={() => setActiveTab('water')}
+            className={`flex items-center gap-1 text-sm font-bold px-3 py-2 rounded border transition-transform active:scale-95 
+                ${activeTab === 'water' 
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-inner' 
+                    : 'text-blue-700 bg-blue-50 border-blue-200 active:bg-blue-100'
+                }`}
+         >
+            <Droplet size={16} className={activeTab === 'water' ? 'fill-white' : ''} /> Water
          </button>
+
          <span className="text-[10px] text-gray-300 font-bold tracking-widest uppercase select-none">LOGGING</span>
-         <button className="flex items-center gap-1 text-sm font-bold text-orange-700 bg-orange-50 px-3 py-2 rounded border border-orange-200 active:bg-orange-100 transition-transform active:scale-95">
-            <Drill size={16} /> Method
+         
+         {/* Botón Method Activo/Inactivo */}
+         <button 
+            onClick={() => setActiveTab('method')}
+            className={`flex items-center gap-1 text-sm font-bold px-3 py-2 rounded border transition-transform active:scale-95 
+                ${activeTab === 'method' 
+                    ? 'bg-orange-600 text-white border-orange-600 shadow-inner' 
+                    : 'text-orange-700 bg-orange-50 border-orange-200 active:bg-orange-100'
+                }`}
+         >
+            <Drill size={16} className={activeTab === 'method' ? 'fill-white' : ''} /> Method
          </button>
       </div>
 
-      {/* TABS */}
+      {/* TABS (Solo visibles/activos si no estamos en 'water' o 'method' o para regresar) */}
       <div className="bg-gray-800 text-gray-300 flex overflow-x-auto text-xs sm:text-sm font-medium shadow-inner">
-         {['core', 'discontinuity', 'conditions', 'tests', 'soil', 'piezometer'].map(id => (
+          {['core', 'discontinuity', 'conditions', 'tests', 'soil', 'piezometer'].map(id => (
             <button
                 key={id}
                 onClick={() => setActiveTab(id)}
@@ -95,17 +115,23 @@ const Dashboard = () => {
             >
                 {id.toUpperCase()}
             </button>
-         ))}
+          ))}
       </div>
 
       {/* CONTENIDO */}
       <div className="flex-1 overflow-y-auto bg-gray-50 pb-20">
-         {activeTab === 'core' && <CoreTab pointId={pointId} projectId={pointData.project_id} />}
-         {activeTab === 'discontinuity' && <DiscontinuityTab pointId={pointId} projectId={pointData.project_id} />}
-         {activeTab === 'conditions' && <ConditionsTab pointId={pointId} projectId={pointData.project_id}/>}
-         {activeTab === 'tests' && <TestsTab pointId={pointId} projectId={pointData.project_id}/>}
-         {activeTab === 'soil' && <SoilTab pointId={pointId} projectId={pointData.project_id}/>}
-         {activeTab === 'piezometer' && <PiezometerTab pointId={pointId} projectId={pointData.project_id}/>}
+          {activeTab === 'core' && <CoreTab pointId={pointId} projectId={pointData.project_id} />}
+          {activeTab === 'discontinuity' && <DiscontinuityTab pointId={pointId} projectId={pointData.project_id} />}
+          {activeTab === 'conditions' && <ConditionsTab pointId={pointId} projectId={pointData.project_id}/>}
+          {activeTab === 'tests' && <TestsTab pointId={pointId} projectId={pointData.project_id}/>}
+          {activeTab === 'soil' && <SoilTab pointId={pointId} projectId={pointData.project_id}/>}
+          {activeTab === 'piezometer' && <PiezometerTab pointId={pointId} projectId={pointData.project_id}/>}
+          
+          {/* Renderizado de WaterPage */}
+          {activeTab === 'water' && <WaterPage pointId={pointId} />}
+          
+          {/* Renderizado de MethodPage */}
+          {activeTab === 'method' && <MethodsPage pointId={pointId} />}
       </div>
     </div>
   );

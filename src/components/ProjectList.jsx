@@ -18,7 +18,7 @@ const ProjectList = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <header className="bg-blue-900 text-white p-4 shadow-md flex justify-between items-center">
-        <h1 className="text-xl font-bold flex items-center gap-2"><Box /> Geolog Collector</h1>
+        <h1 className="text-xl font-bold flex items-center gap-2"><Box /> GeoLog Collector</h1>
       </header>
       
       <div className="p-4 flex-1 overflow-auto">
