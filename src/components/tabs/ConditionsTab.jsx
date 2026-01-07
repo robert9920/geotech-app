@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Trash2, Layers, AlertTriangle } from 'lucide-react';
+import { Save, Trash2, Layers, AlertTriangle, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { db, generateId } from '../../db.js';
 
-const ConditionsTab = ({ pointId }) => {
-  const activePointId = pointId;
+const ConditionsTab = ({ pointId, projectId }) => {
+  const activePointId = pointId; // Fallback para preview
+  const [currentProjectId, setCurrentProjectId] = useState(projectId);
+  const navigate = useNavigate();
 
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,6 +29,13 @@ const ConditionsTab = ({ pointId }) => {
   // --- CARGA DE DATOS ---
   const loadData = async () => {
     if (!activePointId) return;
+    
+    // Obtener ProjectID si no viene en props (necesario para la navegación a Edit)
+    if (!currentProjectId) {
+        const pt = await db.points.where('point_id').equals(activePointId).first();
+        if (pt) setCurrentProjectId(pt.project_id);
+    }
+
     try {
       const items = await db.core_conditions.where('point_id').equals(activePointId).toArray();
       // Ordenar por profundidad
@@ -101,12 +111,11 @@ const ConditionsTab = ({ pointId }) => {
         await loadData(); // Recargar lista
 
         // --- RESET FORMULARIO ---
-        // Sugerencia UX: El nuevo 'depth' inicia donde terminó el 'bottom' anterior
         setFormData({
             core_condition_id: generateId('COND'),
-            depth: bottomVal, 
+            depth: bottomVal, // Sugerencia UX: Continuar desde el anterior
             bottom: '',
-            type: formData.type // Mantiene el último tipo seleccionado
+            type: formData.type 
         });
 
     } catch (error) {
@@ -118,20 +127,23 @@ const ConditionsTab = ({ pointId }) => {
   };
 
   const handleDelete = async (id) => {
-    // Usamos window.confirm para asegurar compatibilidad en todos los navegadores
     if (!window.confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
     
     try {
         await db.core_conditions.delete(id);
-        await loadData(); // Es importante esperar a que recargue
+        await loadData(); 
     } catch (error) {
         console.error("Error al eliminar:", error);
         alert("No se pudo eliminar el registro.");
     }
   };
 
+  const handleEdit = (item) => {
+    navigate(`/edit-conditions/${currentProjectId}/${activePointId}/${item.core_condition_id}`);
+  };
+
   return (
-    // FIX DE DISEÑO: Quitamos 'h-full', agregamos 'gap-4 pb-10' para scroll natural
+    // FIX DE DISEÑO: Scroll natural
     <div className="flex flex-col gap-4 pb-10">
       
       {/* --- FORMULARIO --- */}
@@ -144,7 +156,7 @@ const ConditionsTab = ({ pointId }) => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 
                 <div>
-                    <label className="text-xs font-bold text-gray-500 block mb-1">Depth (m)</label>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Depth (m)*</label>
                     <input 
                         name="depth"
                         type="number" 
@@ -158,7 +170,7 @@ const ConditionsTab = ({ pointId }) => {
                 </div>
 
                 <div>
-                    <label className="text-xs font-bold text-gray-500 block mb-1">Bottom (m)</label>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Bottom (m)*</label>
                     <input 
                         name="bottom"
                         type="number" 
@@ -197,13 +209,11 @@ const ConditionsTab = ({ pointId }) => {
       </div>
 
       {/* --- LISTA --- */}
-      {/* Eliminado flex-1 y overflow-hidden del padre para permitir crecimiento */}
       <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
          <div className="bg-gray-100 p-2 border-b flex justify-between items-center">
             <h4 className="font-bold text-xs text-gray-600">Registros ({list.length})</h4>
          </div>
          
-         {/* Solo overflow-x-auto para scroll horizontal si es necesario */}
          <div className="overflow-x-auto">
              {list.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-10 text-gray-400">
@@ -238,13 +248,22 @@ const ConditionsTab = ({ pointId }) => {
                                     </span>
                                 </td>
                                 <td className="p-3 text-right">
-                                    <button 
-                                        onClick={() => handleDelete(item.core_condition_id)} 
-                                        className="text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors"
-                                        title="Eliminar"
-                                    >
-                                        <Trash2 size={16}/>
-                                    </button>
+                                    <div className="flex justify-end gap-2">
+                                        <button 
+                                            onClick={() => handleEdit(item)} 
+                                            className="text-blue-500 hover:bg-blue-50 p-1.5 rounded transition-colors"
+                                            title="Editar"
+                                        >
+                                            <Pencil size={16}/>
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDelete(item.id)} 
+                                            className="text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors"
+                                            title="Eliminar"
+                                        >
+                                            <Trash2 size={16}/>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

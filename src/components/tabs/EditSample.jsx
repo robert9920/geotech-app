@@ -8,7 +8,7 @@ const EditSample = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState(null);
-  const sampleTypes = ['SPT', 'LPT', 'Shelby', 'Cuchara'];
+  const sampleTypes = ['SPT', 'LPT', 'Shelby', 'CP'];
 
   useEffect(() => {
     const loadData = async () => {

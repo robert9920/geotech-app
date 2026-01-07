@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Trash2, Layers, AlertTriangle, FileText, Lock, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
 import { db, generateId } from '../../db.js';
 
 const SoilTab = ({ pointId, projectId }) => {
-  const activePointId = pointId; // Fallback para preview
+  const activePointId = pointId;
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -29,7 +28,6 @@ const SoilTab = ({ pointId, projectId }) => {
   const loadData = async () => {
     if (!activePointId) return;
     
-    // Obtener ProjectID si no viene en props (necesario para la navegación a Edit)
     if (!currentProjectId) {
         const pt = await db.points.where('point_id').equals(activePointId).first();
         if (pt) setCurrentProjectId(pt.project_id);
@@ -65,12 +63,12 @@ const SoilTab = ({ pointId, projectId }) => {
         depth: parseFloat(formData.depth),
         bottom: parseFloat(formData.bottom),
         sync_status: 0,
-        linked_sample_id: null // Explícitamente null para manuales
+        linked_sample_id: null,
+        linked_hydraulic_id: null // Aseguramos que sea null para manuales
       });
       
       await loadData();
       
-      // Reset
       setFormData({
         soil_id: generateId('SOIL'),
         depth: formData.bottom,
@@ -88,30 +86,29 @@ const SoilTab = ({ pointId, projectId }) => {
   };
 
   const handleDelete = async (item) => {
-    // PROTECCIÓN: No borrar si está vinculado
-    if (item.linked_sample_id) {
+    // PROTECCIÓN: No borrar si está vinculado a Sample o Hydraulic
+    if (item.linked_sample_id || item.linked_hydraulic_id) {
         alert("Este registro se generó automáticamente desde Ensayos y no se puede eliminar aquí. Bórrelo desde la pestaña Tests.");
         return;
     }
 
     if(!confirm("¿Eliminar este estrato manual?")) return;
     try {
-      await db.soil_profiles.delete(item.soil_id);
+      await db.soil_profiles.delete(item.id);
       loadData();
     } catch (e) { console.error(e); }
   };
 
   const handleEdit = (item) => {
       // PROTECCIÓN: No editar si está vinculado
-      if (item.linked_sample_id) {
-          alert("Este registro se generó automáticamente. Edite la muestra correspondiente en la pestaña Tests.");
+      if (item.linked_sample_id || item.linked_hydraulic_id) {
+          alert("Este registro se generó automáticamente. Edite el ensayo correspondiente en la pestaña Tests.");
           return;
       }
       navigate(`/edit-soil/${currentProjectId}/${activePointId}/${item.soil_id}`);
   };
 
   return (
-    // FIX DE DISEÑO: Quitamos 'h-full', agregamos 'gap-4 pb-10' para scroll natural
     <div className="flex flex-col gap-4 pb-10">
       
       {/* Formulario */}
@@ -121,8 +118,8 @@ const SoilTab = ({ pointId, projectId }) => {
          </h3>
          <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div><label className="text-xs font-bold text-gray-500">Depth</label><input name="depth" type="number" step="0.01" value={formData.depth} onChange={handleChange} className="w-full p-2 border rounded font-bold" required/></div>
-                <div><label className="text-xs font-bold text-gray-500">Bottom</label><input name="bottom" type="number" step="0.01" value={formData.bottom} onChange={handleChange} className="w-full p-2 border rounded font-bold" required/></div>
+                <div><label className="text-xs font-bold text-gray-500">Depth (m)*</label><input name="depth" type="number" step="0.01" value={formData.depth} onChange={handleChange} className="w-full p-2 border rounded font-bold" required/></div>
+                <div><label className="text-xs font-bold text-gray-500">Bottom (m)*</label><input name="bottom" type="number" step="0.01" value={formData.bottom} onChange={handleChange} className="w-full p-2 border rounded font-bold" required/></div>
                 <div>
                     <label className="text-xs font-bold text-gray-500">Graphic (USCS)</label>
                     <select name="graphic" value={formData.graphic} onChange={handleChange} className="w-full p-2 border rounded bg-white">
@@ -142,11 +139,8 @@ const SoilTab = ({ pointId, projectId }) => {
       </div>
 
       {/* Lista */}
-      {/* Eliminado flex-1 y overflow-hidden del padre para permitir crecimiento */}
       <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
          <div className="bg-green-50 p-2 border-b border-green-100"><h4 className="font-bold text-xs text-green-800">Estratos Registrados ({list.length})</h4></div>
-         
-         {/* Solo overflow-x-auto para scroll horizontal si es necesario */}
          <div className="overflow-x-auto">
              <table className="w-full text-xs text-left">
                 <thead className="bg-gray-50 text-gray-500 sticky top-0">
@@ -160,7 +154,7 @@ const SoilTab = ({ pointId, projectId }) => {
                 </thead> 
                 <tbody className="divide-y">
                     {list.map(item => {
-                        const isLinked = !!item.linked_sample_id;
+                        const isLinked = !!item.linked_sample_id || !!item.linked_hydraulic_id;
                         return (
                             <tr key={item.soil_id} className={`hover:bg-green-50 ${isLinked ? 'bg-gray-50' : ''}`}>
                                 <td className="p-3 font-bold whitespace-nowrap align-top text-gray-700">

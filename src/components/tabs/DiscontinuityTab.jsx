@@ -119,7 +119,6 @@ const DiscontinuityTab = ({ pointId, projectId }) => {
     condition_discon: 0,
     jr_roughness: 0.5,
     ja_alteration: 0.75,
-    jn_set: 0.5
   });
 
   const loadData = async () => {
@@ -177,7 +176,6 @@ const DiscontinuityTab = ({ pointId, projectId }) => {
             condition_discon: parseInt(formData.condition_discon),
             jr_roughness: parseFloat(formData.jr_roughness),
             ja_alteration: parseFloat(formData.ja_alteration),
-            jn_set: parseFloat(formData.jn_set),
             sync_status: 0
         });
 
@@ -216,8 +214,8 @@ const DiscontinuityTab = ({ pointId, projectId }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
             {/* Fila 1: Básicos */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div><label className="text-xs font-bold text-gray-500">Depth (m)</label><input name="depth" type="number" step="0.01" value={formData.depth} onChange={handleChange} className="w-full p-2 border rounded font-bold" required/></div>
-                <div><label className="text-xs font-bold text-gray-500">Dip (°)</label><input name="dip" type="number" value={formData.dip} onChange={handleChange} className="w-full p-2 border rounded"/></div>
+                <div><label className="text-xs font-bold text-gray-500">Depth (m)*</label><input name="depth" type="number" step="0.01" value={formData.depth} onChange={handleChange} className="w-full p-2 border rounded font-bold" required/></div>
+                <div><label className="text-xs font-bold text-gray-500">Dip (°)*</label><input name="dip" type="number" value={formData.dip} onChange={handleChange} className="w-full p-2 border rounded" required/></div>
                 <div>
                     <label className="text-xs font-bold text-gray-500">Type</label>
                     <select name="type" value={formData.type} onChange={handleChange} className="w-full p-2 border rounded bg-white">{typeOptions.map(o=><option key={o.code} value={o.code}>{o.code} - {o.label}</option>)}</select>
@@ -257,7 +255,7 @@ const DiscontinuityTab = ({ pointId, projectId }) => {
             </div>
 
             {/* Fila 4: Q-Barton (Jr, Ja, Jn) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-purple-50 p-2 rounded">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-purple-50 p-2 rounded">
                 <div>
                     <label className="text-xs font-bold text-purple-700">Jr (Roughness)</label>
                     <select name="jr_roughness" value={formData.jr_roughness} onChange={handleChange} className="w-full p-2 border rounded bg-white text-xs">{jrOptions.map(o=><option key={o.val} value={o.val}>{o.label} ({o.val})</option>)}</select>
@@ -265,10 +263,6 @@ const DiscontinuityTab = ({ pointId, projectId }) => {
                 <div>
                     <label className="text-xs font-bold text-purple-700">Ja (Alteration)</label>
                     <select name="ja_alteration" value={formData.ja_alteration} onChange={handleChange} className="w-full p-2 border rounded bg-white text-xs">{jaOptions.map((o, i)=><option key={i} value={o.val}>{o.label} ({o.val})</option>)}</select>
-                </div>
-                <div>
-                    <label className="text-xs font-bold text-purple-700">Jn (Set)</label>
-                    <select name="jn_set" value={formData.jn_set} onChange={handleChange} className="w-full p-2 border rounded bg-white text-xs">{jnSetOptions.map(o=><option key={o.val} value={o.val}>{o.label} ({o.val})</option>)}</select>
                 </div>
             </div>
 

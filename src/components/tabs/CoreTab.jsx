@@ -170,7 +170,6 @@ const CoreTab = ({ pointId, projectId }) => {
             tcr_length: tcr,
             rqd_length: rqd,
             jn: parseFloat(formData.jn),
-            fracture_index: 0,
             sync_status: 0
         };
 
@@ -234,11 +233,11 @@ const CoreTab = ({ pointId, projectId }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Depth (m)</label>
+                    <label className="block text-xs font-bold text-gray-500 mb-1">Depth (m)*</label>
                     <input name="depth" type="number" step="0.01" min="0" value={formData.depth} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded font-bold" required />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Bottom (m)</label>
+                    <label className="block text-xs font-bold text-gray-500 mb-1">Bottom (m)*</label>
                     <input name="bottom" type="number" step="0.01" min="0" value={formData.bottom} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded font-bold" required />
                 </div>
             </div>
@@ -288,7 +287,6 @@ const CoreTab = ({ pointId, projectId }) => {
                         <th className="px-2 py-3 text-center">Str. Idx</th>
                         <th className="px-2 py-3 text-center">Weath. Idx</th>
                         <th className="px-2 py-3 text-center">Jn</th>
-                        <th className="px-2 py-3 text-center">Frac.</th>
                         <th className="px-2 py-3 text-right">Acción</th>
                     </tr>
                 </thead>
@@ -310,7 +308,6 @@ const CoreTab = ({ pointId, projectId }) => {
                                 <td className="px-2 py-3 text-center font-bold text-green-600">{core.weaIdx}</td>
 
                                 <td className="px-2 py-3 text-center"><span className="bg-gray-100 px-2 py-1 rounded font-bold">{core.jn}</span></td>
-                                <td className="px-2 py-3 text-center font-mono text-gray-400">{core.fracture_index}</td>
                                 
                                 <td className="px-2 py-3 text-right">
                                     <div className="flex justify-end gap-2">

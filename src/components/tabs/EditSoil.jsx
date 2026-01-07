@@ -140,11 +140,11 @@ const EditSoil = () => {
                 {/* Fila 1: Profundidades */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Depth (m)</label>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Depth (m)*</label>
                         <input name="depth" type="number" step="0.01" min="0" value={formData.depth} onChange={handleChange} className="w-full p-3 border rounded font-mono font-bold text-lg focus:ring-2 focus:ring-green-500 outline-none" required />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Bottom (m)</label>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Bottom (m)*</label>
                         <input name="bottom" type="number" step="0.01" min="0" value={formData.bottom} onChange={handleChange} className="w-full p-3 border rounded font-mono font-bold text-lg focus:ring-2 focus:ring-green-500 outline-none" required />
                     </div>
                 </div>

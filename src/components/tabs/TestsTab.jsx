@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { db, generateId } from '../../db.js'; 
 
 const TestsTab = ({ pointId, projectId }) => {
-  const activePointId = pointId; // Fallback para preview
+  const activePointId = pointId;
   const [currentProjectId, setCurrentProjectId] = useState(projectId);
   const navigate = useNavigate();
   
@@ -30,16 +30,17 @@ const TestsTab = ({ pointId, projectId }) => {
     hydraulic_id: generateId('HYD'),
     depth: '',
     bottom: '',
-    K: ''
+    K: '',
+    check: false
   });
 
-  const sampleTypes = ['SPT', 'LPT', 'Shelby', 'Cuchara'];
+  const sampleTypes = ['SPT', 'LPT', 'Shelby', 'CP'];
 
   // --- CARGAR DATOS ---
   const loadData = async () => {
     if (!activePointId) return;
     try {
-      // Cargar Samples y ordenar por profundidad para asegurar consistencia visual
+      // Cargar Samples y ordenar por profundidad
       const sItems = await db.samples.where('point_id').equals(activePointId).toArray();
       setSamplesList(sItems ? sItems.sort((a, b) => a.depth - b.depth) : []);
 
@@ -74,9 +75,24 @@ const TestsTab = ({ pointId, projectId }) => {
     return ((d + b) / 2).toFixed(3);
   };
 
-  // Helper para generar descripción de suelo automáticamente
   const generateSoilDescription = (number, depth, bottom, nValue) => {
     return `SPT N°${number}: (${parseFloat(depth).toFixed(2)} m - ${parseFloat(bottom).toFixed(2)} m)\nNSPT = ${nValue}`;
+  };
+
+  const generateHydraulicDescription = (number, depth, bottom, kValue, isChecked) => {
+    const d = parseFloat(depth).toFixed(2);
+    const b = parseFloat(bottom).toFixed(2);
+    const numPad = String(number).padStart(2, '0');
+    
+    let kText = '';
+    if (isChecked) {
+        kText = 'MUY PERMEABLE';
+    } else {
+        const sci = kValue.toExponential(2);
+        kText = `${sci.replace('e', 'x10')}cm/s`;
+    }
+
+    return `Ensayo de Permeabilidad N°${number}\nLFCC-${numPad}: (${d} m - ${b} m)\nK=${kText}`;
   };
 
   // --- MANEJADORES DE FORMULARIOS ---
@@ -87,9 +103,13 @@ const TestsTab = ({ pointId, projectId }) => {
   };
 
   const handleHydraulicChange = (e) => {
-    const { name, value, type } = e.target;
-    if (type === 'number' && parseFloat(value) < 0) return;
-    setHydraulicForm({ ...hydraulicForm, [name]: value });
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+        setHydraulicForm({ ...hydraulicForm, [name]: checked });
+    } else {
+        if (type === 'number' && parseFloat(value) < 0) return;
+        setHydraulicForm({ ...hydraulicForm, [name]: value });
+    }
   };
 
   // --- GUARDAR SAMPLE ---
@@ -100,7 +120,6 @@ const TestsTab = ({ pointId, projectId }) => {
 
     setLoading(true);
     try {
-        // Obtenemos el siguiente número lógicamente basado en la cantidad actual
         const nextNumber = samplesList.length + 1;
         const depthVal = parseFloat(sampleForm.depth);
         const bottomVal = parseFloat(sampleForm.bottom);
@@ -108,7 +127,6 @@ const TestsTab = ({ pointId, projectId }) => {
         const v30 = parseInt(sampleForm.v_30) || 0;
         const v45 = parseInt(sampleForm.v_45) || 0;
 
-        // 1. Guardar en tabla 'samples'
         await db.samples.add({
             ...sampleForm,
             point_id: activePointId,
@@ -121,7 +139,6 @@ const TestsTab = ({ pointId, projectId }) => {
             sync_status: 0
         });
 
-        // 2. Crear registro automático en 'soil_profiles'
         const nValue = calculateNValue(v15, v30, v45);
         const midDepth = (depthVal + bottomVal) / 2;
         const soilDescription = generateSoilDescription(nextNumber, depthVal, bottomVal, nValue);
@@ -131,10 +148,10 @@ const TestsTab = ({ pointId, projectId }) => {
             point_id: activePointId,
             depth: midDepth,
             //bottom: bottomVal,
-            //graphic: 'CL', // Valor por defecto
+            //graphic: 'CL', 
             description: soilDescription,
             //unit_summary: '',
-            linked_sample_id: sampleForm.sample_id, // Vinculación clave
+            linked_sample_id: sampleForm.sample_id,
             sync_status: 0
         });
 
@@ -160,16 +177,39 @@ const TestsTab = ({ pointId, projectId }) => {
   // --- GUARDAR HYDRAULIC ---
   const handleSaveHydraulic = async (e) => {
     e.preventDefault();
-    if (!hydraulicForm.depth || !hydraulicForm.bottom || !hydraulicForm.K) { alert("Campos incompletos"); return; }
-    
+    if (!hydraulicForm.depth || !hydraulicForm.bottom) { alert("Profundidades requeridas"); return; }
+
     setLoading(true);
     try {
+        const nextNumber = hydraulicList.length + 1;
+        const depthVal = parseFloat(hydraulicForm.depth);
+        const bottomVal = parseFloat(hydraulicForm.bottom);
+        const kVal = hydraulicForm.K ? parseFloat(hydraulicForm.K) : 0; 
+        const isChecked = hydraulicForm.check;
+
         await db.hydraulic_cond.add({
             ...hydraulicForm,
             point_id: activePointId,
-            depth: parseFloat(hydraulicForm.depth),
-            bottom: parseFloat(hydraulicForm.bottom),
-            K: parseFloat(hydraulicForm.K),
+            depth: depthVal,
+            bottom: bottomVal,
+            K: kVal,
+            check: isChecked, 
+            number: nextNumber,
+            sync_status: 0
+        });
+
+        const midDepth = (depthVal + bottomVal) / 2;
+        const soilDescription = generateHydraulicDescription(nextNumber, depthVal, bottomVal, kVal, isChecked);
+
+        await db.soil_profiles.add({
+            soil_id: generateId('SOIL'),
+            point_id: activePointId,
+            depth: midDepth,
+            //bottom: bottomVal,
+            //graphic: 'CL', 
+            description: soilDescription,
+            //unit_summary: '',
+            linked_hydraulic_id: hydraulicForm.hydraulic_id,
             sync_status: 0
         });
 
@@ -179,7 +219,8 @@ const TestsTab = ({ pointId, projectId }) => {
             hydraulic_id: generateId('HYD'),
             depth: hydraulicForm.bottom,
             bottom: '',
-            K: ''
+            K: '',
+            check: false
         });
     } catch (error) {
         console.error(error);
@@ -189,53 +230,62 @@ const TestsTab = ({ pointId, projectId }) => {
     }
   };
 
-  // --- ELIMINAR SAMPLE CON TRANSACCIÓN Y SINCRONIZACIÓN DE SUELOS ---
+  // --- ELIMINAR SAMPLE ---
   const handleDeleteSample = async (id, sample_id, deletedNumber) => {
-    if(!confirm("¿Eliminar muestra? Se borrará el perfil de suelo asociado y se reordenarán las numeraciones.")) return;
+    if(!confirm("¿Eliminar muestra?")) return;
     
     try {
-        // Usamos transacción sobre samples y soil_profiles
         await db.transaction('rw', [db.samples, db.soil_profiles], async () => {
-            
-            // 1. Eliminar el registro de Sample
             await db.samples.delete(id);
-
-            // 2. Eliminar el registro de Soil Profile vinculado (si existe)
             const linkedSoil = await db.soil_profiles.where('linked_sample_id').equals(sample_id).first();
-            if (linkedSoil) {
-                await db.soil_profiles.delete(linkedSoil.id);
-            }
+            if (linkedSoil) await db.soil_profiles.delete(linkedSoil.id);
 
-            // 3. Obtener los registros con mayor valor en el campo number
             const subsequentSamples = await db.samples.where('point_id').equals(activePointId).filter(c => c.number > deletedNumber).toArray();
 
-            // 4. Iterando sobre cada sample
-                for (const sample of subsequentSamples){
-                    await db.samples.update(sample.id, {number: sample.number - 1, sync_status : 0});
+            for (const sample of subsequentSamples){
+                const newNumber = sample.number - 1;
+                await db.samples.update(sample.id, {number: newNumber, sync_status : 0});
 
-                    // Actualizar descripción en Soil Profile vinculado
-                    const linkedProf = await db.soil_profiles.where('linked_sample_id').equals(sample.sample_id).first();
-                    if (linkedProf) {
-                        const nVal = calculateNValue(sample.v_15, sample.v_30, sample.v_45);
-                        const newDesc = generateSoilDescription(sample.number-1, sample.depth, sample.bottom, nVal);
-                        await db.soil_profiles.update(linkedProf.id, {description: newDesc, sync_status: 0 });
-                    }
+                const linkedProf = await db.soil_profiles.where('linked_sample_id').equals(sample.sample_id).first();
+                if (linkedProf) {
+                    const nVal = calculateNValue(sample.v_15, sample.v_30, sample.v_45);
+                    const newDesc = generateSoilDescription(newNumber, sample.depth, sample.bottom, nVal);
+                    await db.soil_profiles.update(linkedProf.id, {description: newDesc, sync_status: 0 });
                 }
+            }
         });
-
-        // 5. Recargar la interfaz
         await loadData();
-
     } catch (error) {
-        console.error("Error al eliminar/reordenar:", error);
-        alert("Ocurrió un error al procesar la eliminación.");
+        console.error("Error al eliminar:", error);
     }
   };
 
-  const handleDeleteHydraulic = async (id) => {
-    if(confirm("¿Eliminar ensayo hidráulico?")) {
-        await db.hydraulic_cond.delete(id);
-        loadData();
+  // --- ELIMINAR HYDRAULIC ---
+  const handleDeleteHydraulic = async (id, hydraulic_id, deletedNumber) => {
+    if(!confirm("¿Eliminar ensayo hidráulico?")) return;
+    
+    try {
+        await db.transaction('rw', [db.hydraulic_cond, db.soil_profiles], async () => {
+            await db.hydraulic_cond.delete(id);
+            const linkedSoil = await db.soil_profiles.where('linked_hydraulic_id').equals(hydraulic_id).first();
+            if (linkedSoil) await db.soil_profiles.delete(linkedSoil.id);
+
+            const subsequentItems = await db.hydraulic_cond.where('point_id').equals(activePointId).filter(c => c.number > deletedNumber).toArray();
+
+            for (const item of subsequentItems) {
+                const newNumber = item.number - 1;
+                await db.hydraulic_cond.update(item.id, {number: newNumber, sync_status: 0});
+
+                const linkedProf = await db.soil_profiles.where('linked_hydraulic_id').equals(item.hydraulic_id).first();
+                if (linkedProf) {
+                    const newDesc = generateHydraulicDescription(newNumber, item.depth, item.bottom, item.K, item.check);
+                    await db.soil_profiles.update(linkedProf.id, {description: newDesc, sync_status: 0});
+                }
+            }
+        });
+        await loadData();
+    } catch (error) {
+        console.error("Error al eliminar:", error);
     }
   };
 
@@ -243,27 +293,29 @@ const TestsTab = ({ pointId, projectId }) => {
     navigate(`/edit-sample/${currentProjectId}/${activePointId}/${sampleId}`);
   };
 
+  // NUEVA FUNCIÓN DE NAVEGACIÓN
+  const handleEditHydraulic = (hydraulicId) => {
+    navigate(`/edit-hydraulic/${currentProjectId}/${activePointId}/${hydraulicId}`);
+  };
+
   return (
     <div className="flex flex-col gap-8 pb-10">
       
       {/* ================= SECCIÓN 1: SAMPLES (Naranja) ================= */}
       <div className="flex flex-col gap-4">
-        
-        {/* Formulario Samples */}
         <div className="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
             <h3 className="font-bold text-gray-700 flex items-center gap-2 mb-3">
                 <Activity size={18} className="text-orange-500"/> Ensayo de Resistencia (SPT/LPT)
             </h3>
             <form onSubmit={handleSaveSample} className="space-y-3">
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 items-end">
-                    <div className="col-span-1"><label className="text-[10px] font-bold text-gray-500">Depth</label><input name="depth" type="number" step="0.01" value={sampleForm.depth} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs font-bold" placeholder="m" required/></div>
-                    <div className="col-span-1"><label className="text-[10px] font-bold text-gray-500">Bottom</label><input name="bottom" type="number" step="0.01" value={sampleForm.bottom} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs font-bold" placeholder="m" required/></div>
+                    <div className="col-span-1"><label className="text-[10px] font-bold text-gray-500">Depth (m)*</label><input name="depth" type="number" step="0.01" value={sampleForm.depth} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs font-bold" placeholder="m" required/></div>
+                    <div className="col-span-1"><label className="text-[10px] font-bold text-gray-500">Bottom (m)*</label><input name="bottom" type="number" step="0.01" value={sampleForm.bottom} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs font-bold" placeholder="m" required/></div>
                     <div className="col-span-2 md:col-span-1"><label className="text-[10px] font-bold text-gray-500">Type</label>
                         <select name="type" value={sampleForm.type} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs bg-white">
                             {sampleTypes.map(t=><option key={t} value={t}>{t}</option>)}
                         </select>
                     </div>
-                    {/* Golpes */}
                     <div className="col-span-1"><label className="text-[10px] font-bold text-gray-500">V. 15</label><input name="v_15" type="number" value={sampleForm.v_15} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs text-center" placeholder="#"/></div>
                     <div className="col-span-1"><label className="text-[10px] font-bold text-gray-500">V. 30</label><input name="v_30" type="number" value={sampleForm.v_30} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs text-center" placeholder="#"/></div>
                     <div className="col-span-1"><label className="text-[10px] font-bold text-gray-500">V. 45</label><input name="v_45" type="number" value={sampleForm.v_45} onChange={handleSampleChange} className="w-full p-2 border rounded text-xs text-center" placeholder="#"/></div>
@@ -275,7 +327,6 @@ const TestsTab = ({ pointId, projectId }) => {
             </form>
         </div>
 
-        {/* Tabla Samples */}
         <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
             <div className="bg-orange-50 p-2 border-b border-orange-100 flex justify-between"><h4 className="font-bold text-xs text-orange-800">Registros ({samplesList.length})</h4></div>
             <div className="overflow-x-auto">
@@ -310,7 +361,6 @@ const TestsTab = ({ pointId, projectId }) => {
                                 </td>
                             </tr>
                         ))}
-                        {samplesList.length === 0 && <tr><td colSpan="7" className="p-4 text-center text-gray-400">Sin registros</td></tr>}
                     </tbody>
                 </table>
             </div>
@@ -327,9 +377,34 @@ const TestsTab = ({ pointId, projectId }) => {
             </h3>
             <form onSubmit={handleSaveHydraulic} className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div><label className="text-[10px] font-bold text-gray-500">Depth (m)</label><input name="depth" type="number" step="0.01" value={hydraulicForm.depth} onChange={handleHydraulicChange} className="w-full p-2 border rounded text-xs font-bold" required/></div>
-                    <div><label className="text-[10px] font-bold text-gray-500">Bottom (m)</label><input name="bottom" type="number" step="0.01" value={hydraulicForm.bottom} onChange={handleHydraulicChange} className="w-full p-2 border rounded text-xs font-bold" required/></div>
-                    <div><label className="text-[10px] font-bold text-gray-500">K (Permeabilidad)</label><input name="K" type="number" step="0.00000001" value={hydraulicForm.K} onChange={handleHydraulicChange} className="w-full p-2 border rounded text-xs" placeholder="e.g. 1.2e-5" required/></div>
+                    <div><label className="text-[10px] font-bold text-gray-500">Depth (m)*</label><input name="depth" type="number" step="0.01" value={hydraulicForm.depth} onChange={handleHydraulicChange} className="w-full p-2 border rounded text-xs font-bold" required/></div>
+                    <div><label className="text-[10px] font-bold text-gray-500">Bottom (m)*</label><input name="bottom" type="number" step="0.01" value={hydraulicForm.bottom} onChange={handleHydraulicChange} className="w-full p-2 border rounded text-xs font-bold" required/></div>
+                    
+                    <div>
+                        <label className="text-[10px] font-bold text-gray-500 flex justify-between items-center mb-1">
+                            <span>K (Permeabilidad)</span>
+                            <div className="flex items-center gap-1">
+                                <input 
+                                    name="check" 
+                                    type="checkbox" 
+                                    checked={hydraulicForm.check} 
+                                    onChange={handleHydraulicChange} 
+                                    className="w-3 h-3 cursor-pointer"
+                                />
+                                <span className="text-[9px] text-cyan-600 font-bold">Muy Permeable?</span>
+                            </div>
+                        </label>
+                        <input 
+                            name="K" 
+                            type="number" 
+                            step="0.00000001" 
+                            value={hydraulicForm.K} 
+                            onChange={handleHydraulicChange} 
+                            className="w-full p-2 border rounded text-xs transition-colors"
+                            placeholder="e.g. 1.2e-5" 
+                        />
+                    </div>
+
                     <button type="submit" disabled={loading} className="bg-cyan-500 text-white py-2 px-4 rounded text-sm font-bold hover:bg-cyan-600 shadow-sm flex items-center justify-center gap-2 h-9">
                         <Save size={16}/> Guardar
                     </button>
@@ -344,9 +419,9 @@ const TestsTab = ({ pointId, projectId }) => {
                 <table className="w-full text-xs text-left">
                     <thead className="bg-gray-50 text-gray-500">
                         <tr>
+                            <th className="p-2">#</th>
                             <th className="p-2">Depth</th>
                             <th className="p-2">Bottom</th>
-                            <th className="p-2">Longitud</th>
                             <th className="p-2">Valor K</th>
                             <th className="p-2 text-right">Acción</th>
                         </tr>
@@ -354,16 +429,25 @@ const TestsTab = ({ pointId, projectId }) => {
                     <tbody className="divide-y">
                         {hydraulicList.map((item) => (
                             <tr key={item.hydraulic_id} className="hover:bg-gray-50">
+                                <td className="p-2 font-bold text-gray-400">#{item.number}</td>
                                 <td className="p-2 font-bold text-gray-700">{item.depth.toFixed(2)}</td>
                                 <td className="p-2 font-bold text-gray-700">{item.bottom.toFixed(2)}</td>
-                                <td className="p-2 text-gray-500">{(item.bottom - item.depth).toFixed(2)} m</td>
-                                <td className="p-2 font-mono text-cyan-700">{item.K.toExponential(2)}</td>
-                                <td className="p-2 text-right">
-                                    <button onClick={() => handleDeleteHydraulic(item.id)} className="text-red-500 hover:bg-red-50 p-1 rounded"><Trash2 size={14}/></button>
+                                <td className="p-2 font-mono text-cyan-700">
+                                    {item.check ? 
+                                        <div className="flex flex-col items-start">
+                                            <span className="bg-cyan-100 px-1 rounded text-[9px] font-bold mb-0.5">MUY PERMEABLE</span>
+                                            <span className="text-[10px] text-gray-400">{item.K.toExponential(2)}</span>
+                                        </div>
+                                        : item.K.toExponential(2)
+                                    }
+                                </td>
+                                <td className="p-2 text-right flex justify-end gap-2">
+                                    {/* BOTÓN EDITAR AGREGADO */}
+                                    <button onClick={() => handleEditHydraulic(item.hydraulic_id)} className="text-blue-500 hover:bg-blue-50 p-1 rounded" title="Editar"><Pencil size={14}/></button>
+                                    <button onClick={() => handleDeleteHydraulic(item.id, item.hydraulic_id, item.number)} className="text-red-500 hover:bg-red-50 p-1 rounded" title="Eliminar"><Trash2 size={14}/></button>
                                 </td>
                             </tr>
                         ))}
-                        {hydraulicList.length === 0 && <tr><td colSpan="5" className="p-4 text-center text-gray-400">Sin registros</td></tr>}
                     </tbody>
                 </table>
             </div>

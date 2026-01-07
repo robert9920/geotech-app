@@ -146,11 +146,11 @@ const PiezometerTab = ({ pointId, projectId }) => {
             {/* Fila 1: Geometría */}
             <div className="grid grid-cols-3 gap-3">
                 <div>
-                    <label className="text-xs font-bold text-gray-500 block mb-1">Depth (m)</label>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Depth (m)*</label>
                     <input name="depth" type="number" step="0.01" value={formData.depth} onChange={handleChange} className="w-full p-2 border rounded font-bold text-gray-800" required placeholder="0.00"/>
                 </div>
                 <div>
-                    <label className="text-xs font-bold text-gray-500 block mb-1">Bottom (m)</label>
+                    <label className="text-xs font-bold text-gray-500 block mb-1">Bottom (m)*</label>
                     <input name="bottom" type="number" step="0.01" value={formData.bottom} onChange={handleChange} className="w-full p-2 border rounded font-bold text-gray-800" required placeholder="0.00"/>
                 </div>
                 <div>
@@ -253,7 +253,7 @@ const PiezometerTab = ({ pointId, projectId }) => {
                                     <button onClick={() => handleEdit(item)} className="text-blue-500 hover:bg-blue-50 p-1 rounded transition-colors" title="Editar">
                                         <Pencil size={16}/>
                                     </button>
-                                    <button onClick={() => handleDelete(item.piezometer_id)} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title="Eliminar">
+                                    <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title="Eliminar">
                                         <Trash2 size={16}/>
                                     </button>
                                 </div>
