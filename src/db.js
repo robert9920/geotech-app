@@ -8,7 +8,7 @@ export const db = new Dexie('GeologDB');
 
 db.version(1).stores({
   // ESTRUCTURA JERÁRQUICA
-  projects: '++id, project_id, title, client, location, depth_log_page, water_unit_w, input_units, shear_strength_max, water_content_max, k_scale_min, k_scale_increment, draft_stamp, coeff_of_consol_factor, dynamic_max, chamber_max, becker_max, sync_status',
+  projects: '++id, project_id, title, client, location, depth_log_page, water_unit_w, input_units, output_units, shear_strength_max, water_content_max, k_scale_min, k_scale_increment, draft_stamp, coeff_of_consol_factor, dynamic_max, chamber_max, becker_max, sync_status',
   points: '++id, point_id, project_id, hole_depth, boring_date, soil_drilling_contractor, elevation, plunge, end_soil_depth, start_rock_depth, top_depth_rock, rock_date, rock_drilling_contractor, rock_drilling_rig, depth_log_page, borehole_type, north, east, surveyed, coordinate_system, zone, sync_status',
 
   // TABLAS DE REGISTRO (PESTAÑAS)
@@ -17,7 +17,7 @@ db.version(1).stores({
   core_conditions: '++id, core_condition_id, point_id, depth, bottom, type, sync_status',
   
   // Pestaña Tests (Incluye Samples y Hydraulic)
-  samples: '++id, sample_id, point_id, depth, bottom, number, type, v_15, v_30, v_45, sample_recobery, blows_limit_depth, sync_status',
+  samples: '++id, sample_id, point_id, depth, bottom, number, type, v_15, v_30, v_45, blows_limit_depth, sync_status',
   hydraulic_cond: '++id, hydraulic_id, point_id, depth, bottom, k, number, check, sync_status',
   
   piezometers: '++id, piezometer_id, point_id, depth, bottom, graphic, description, therm_node_num, lines, color, name, prof_piezo, sync_status',
