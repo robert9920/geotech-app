@@ -12,6 +12,7 @@ import SoilTab from './tabs/SoilTab.jsx';
 import PiezometerTab from './tabs/PiezometerTab.jsx';
 import WaterPage from './WaterObs.jsx';
 import MethodsPage from './Methods.jsx';
+import ExportExcelButton from './ExportExcelButton.jsx';
 
 const Dashboard = () => {
   const { pointId } = useParams();
@@ -69,6 +70,10 @@ const Dashboard = () => {
                 <span>Elev: {pointData.elevation}</span>
             </div>
           </div>
+          
+          {/* BOTÓN DE EXPORTAR EXCEL */}
+          <ExportExcelButton projectId={pointData.project_id} />
+
           <div className="text-xs bg-green-600 px-2 py-1 rounded shadow font-bold tracking-wide">Sync: OK</div>
       </header>
 
